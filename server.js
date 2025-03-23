@@ -21,8 +21,8 @@ const sendEmailAlert = async (level) => {
     await axios.post(
       "https://api.resend.com/emails",
       {
-        from: "sounddetector7@gmail.com", // Replace with a verified sender
-        to: ALERT_EMAIL,
+        from: "sounddetector7@gmail.com", // Verified sender email
+        to: ALERT_EMAIL, // 🔹 Ensure this is set in your .env file
         subject: "🚨 High Sound Level Alert!",
         text: `Warning! A high sound level of ${level} dB was detected.`
       },
@@ -30,9 +30,9 @@ const sendEmailAlert = async (level) => {
         headers: { Authorization: `Bearer ${RESEND_API_KEY}` }
       }
     );
-    console.log("Email alert sent successfully.");
+    console.log("✅ Email alert sent successfully.");
   } catch (error) {
-    console.error("Error sending email:", error.response?.data || error.message);
+    console.error("❌ Error sending email:", error.response?.data || error.message);
   }
 };
 
@@ -52,13 +52,13 @@ app.post("/api/sound-data", async (req, res) => {
   };
 
   soundData.push(newData);
-
   if (soundData.length > 1000) {
     soundData = soundData.slice(-1000);
   }
 
+  // Send email if sound level is high
   if (level > 85) {
-    console.log(`ALERT: High sound level detected: ${level} dB`);
+    console.log(`⚠️ ALERT: High sound level detected: ${level} dB`);
     await sendEmailAlert(level);
   }
 
@@ -69,6 +69,15 @@ app.post("/api/sound-data", async (req, res) => {
 app.get("/api/sound-data", (req, res) => {
   res.status(200).json(soundData.slice(-50));
 });
+
+// 🔹 Simulate random sound data every 5 seconds (For Testing)
+setInterval(async () => {
+  const randomLevel = Math.floor(Math.random() * 60) + 40; // Random level between 40-100 dB
+  console.log(`🔊 Generated sound level: ${randomLevel} dB`);
+
+  await axios.post("http://localhost:5000/api/sound-data", { level: randomLevel, deviceId: "test-device" })
+    .catch(err => console.error("Error sending test data:", err.message));
+}, 5000);
 
 // Export the app for Vercel
 module.exports = app;
