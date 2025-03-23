@@ -21,7 +21,7 @@ const sendEmailAlert = async (level) => {
     await axios.post(
       "https://api.resend.com/emails",
       {
-        from: "alerts@yourdomain.com", // Replace with a verified sender
+        from: "sounddetector7@gmail.com", // Replace with a verified sender
         to: ALERT_EMAIL,
         subject: "🚨 High Sound Level Alert!",
         text: `Warning! A high sound level of ${level} dB was detected.`
