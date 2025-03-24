@@ -75,7 +75,7 @@ setInterval(async () => {
   const randomLevel = Math.floor(Math.random() * 60) + 40; // Random level between 40-100 dB
   console.log(`🔊 Generated sound level: ${randomLevel} dB`);
 
-  await axios.post("http://localhost:5000/api/sound-data", { level: randomLevel, deviceId: "test-device" })
+  await axios.post("https://sound-detector-backend.vercel.app/api/sound-data", { level: randomLevel, deviceId: "test-device" })
     .catch(err => console.error("Error sending test data:", err.message));
 }, 5000);
 
