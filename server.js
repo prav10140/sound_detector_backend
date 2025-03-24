@@ -1,13 +1,13 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const nodemailer = require("nodemailer");
+const axios = require("axios");
 require("dotenv").config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 const ALERT_EMAIL = process.env.ALERT_EMAIL;
-const SMTP_USER = process.env.SMTP_USER;
-const SMTP_PASS = process.env.SMTP_PASS;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;  // Store your API key in .env
 
 // Middleware
 app.use(cors());
@@ -16,31 +16,31 @@ app.use(bodyParser.json());
 // Store sound data
 let soundData = [];
 
-// Configure Nodemailer with Brevo SMTP
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: SMTP_USER,
-    pass: SMTP_PASS,
-  },
-});
+// Ensure Brevo API Key exists
+if (!BREVO_API_KEY || !ALERT_EMAIL) {
+  console.error("❌ Missing BREVO_API_KEY or ALERT_EMAIL in .env file!");
+  process.exit(1);
+}
 
-// Function to send email alerts
+// Function to send email alerts using Brevo API
 const sendEmailAlert = async (level) => {
   try {
-    const mailOptions = {
-      from: SMTP_USER,
-      to: ALERT_EMAIL,
-      subject: "🚨 High Sound Level Alert!",
-      text: `Warning! A high sound level of ${level} dB was detected.`,
-    };
+    const response = await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: { name: "Sound Detector", email: "your-email@example.com" }, // Update sender email
+        to: [{ email: ALERT_EMAIL }],
+        subject: "🚨 High Sound Level Alert!",
+        htmlContent: `<p><strong>Warning!</strong> A high sound level of <b>${level} dB</b> was detected.</p>`
+      },
+      {
+        headers: { "api-key": BREVO_API_KEY, "Content-Type": "application/json" }
+      }
+    );
 
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Email alert sent successfully.");
+    console.log("✅ Email alert sent successfully:", response.data);
   } catch (error) {
-    console.error("❌ Error sending email:", error);
+    console.error("❌ Error sending email:", error.response?.data || error.message);
   }
 };
 
@@ -56,7 +56,7 @@ app.post("/api/sound-data", async (req, res) => {
     id: Date.now().toString(),
     level,
     deviceId: deviceId || "unknown",
-    timestamp: Date.now(),
+    timestamp: Date.now()
   };
 
   soundData.push(newData);
@@ -78,5 +78,9 @@ app.get("/api/sound-data", (req, res) => {
   res.status(200).json(soundData.slice(-50));
 });
 
-// Export the app for Vercel
+// Start the server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
 module.exports = app;
