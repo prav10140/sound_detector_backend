@@ -65,10 +65,10 @@ app.post("/api/sound-data", async (req, res) => {
   }
 
   // Send email if sound level is high
-  if (level > 85) {
-    console.log(`⚠️ ALERT: High sound level detected: ${level} dB`);
-    await sendEmailAlert(level);
-  }
+ // Always send email when data is received
+console.log(`📩 Sending email for sound level: ${level} dB`);
+await sendEmailAlert(level);
+
 
   res.status(200).json({ success: true, id: newData.id });
 });
