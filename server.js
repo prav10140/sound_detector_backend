@@ -28,7 +28,7 @@ const sendEmailAlert = async (level) => {
     const response = await axios.post(
       "https://api.brevo.com/v3/smtp/email",
       {
-        sender: { name: "Sound Detector", email: "sounddetector7@gmail.com" },
+        sender: { name: "Sound Detector", email: "sounddetector7@8961821.brevosend.com" },
         to: [{ email: ALERT_EMAIL }],
         subject: "🚨 Sound Level Alert",
         htmlContent: `<p>⚠️ Detected sound level: <strong>${level} dB</strong></p>`
