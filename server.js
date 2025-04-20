@@ -58,12 +58,13 @@ app.post("/api/sound-data", async (req, res) => {
     soundData = soundData.slice(-1000);
   }
 
-  if (level > 0) {
-    console.log(`📲 Sending WhatsApp alert for level: ${level} dB`);
-    await sendWhatsAppAlert(level);
-  } else {
-    console.log("🔇 Level is 0 dB – no alert.");
-  }
+  if (level > 50) {
+  console.log(`📩 Sending WhatsApp alert for sound level: ${level} dB`);
+  await sendWhatsAppAlert(level);
+} else {
+  console.log(`🔈 Sound level ${level} dB – below threshold, not sending WhatsApp alert.`);
+}
+
 
   res.status(200).json({ success: true, id: newData.id });
 });
