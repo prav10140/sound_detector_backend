@@ -1,21 +1,16 @@
 {
-  "name": "sound-detector-server",
+  "name": "sound-whatsapp-alert",
   "version": "1.0.0",
-  "description": "Simple server for sound detector IoT project",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
+    "axios": "^1.6.8",
     "body-parser": "^1.20.2",
-    "axios": "^1.5.1",
+    "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "nodemailer": "^6.9.7"  
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.22"
+    "express": "^4.18.2",
+    "twilio": "^4.21.0"
   }
 }
