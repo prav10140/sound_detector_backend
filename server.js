@@ -1,3 +1,4 @@
+// server.js
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
@@ -9,9 +10,11 @@ const PORT = process.env.PORT || 5000;
 const ALERT_EMAIL = process.env.ALERT_EMAIL;
 const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
+// Store recent sound data
 let soundData = [];
 
 if (!BREVO_API_KEY || !ALERT_EMAIL) {
@@ -19,73 +22,62 @@ if (!BREVO_API_KEY || !ALERT_EMAIL) {
   process.exit(1);
 }
 
+// Send email using Brevo API
 const sendEmailAlert = async (level) => {
   try {
-    console.log(`📤 Preparing to send email for level: ${level} dB`);
     const response = await axios.post(
       "https://api.brevo.com/v3/smtp/email",
       {
         sender: { name: "Sound Detector", email: "sounddetector7@gmail.com" },
         to: [{ email: ALERT_EMAIL }],
-        subject: "🚨 High Sound Level Alert!",
-        htmlContent: `<p><strong>Warning!</strong> A high sound level of <b>${level} dB</b> was detected.</p>`
+        subject: "🚨 Sound Level Alert",
+        htmlContent: `<p>⚠️ Detected sound level: <strong>${level} dB</strong></p>`
       },
       {
-        headers: { "api-key": BREVO_API_KEY, "Content-Type": "application/json" }
+        headers: {
+          "api-key": BREVO_API_KEY,
+          "Content-Type": "application/json"
+        }
       }
     );
-    console.log("✅ Email alert sent successfully:", response.data);
+    console.log("✅ Email sent:", response.data);
   } catch (error) {
-    console.error("❌ Error sending email:", error.response?.data || error.message);
+    console.error("❌ Email error:", error.response?.data || error.message);
   }
 };
 
-// 🔊 Real-time sound data endpoint
+// API endpoint to receive data
 app.post("/api/sound-data", async (req, res) => {
   const { level, deviceId } = req.body;
-
   if (typeof level !== "number") {
-    return res.status(400).json({ error: "Invalid sound level data" });
+    return res.status(400).json({ error: "Invalid sound level" });
   }
 
-  const newData = {
+  const data = {
     id: Date.now().toString(),
     level,
     deviceId: deviceId || "unknown",
     timestamp: Date.now()
   };
 
-  soundData.push(newData);
-  if (soundData.length > 1000) {
-    soundData = soundData.slice(-1000);
-  }
+  soundData.push(data);
+  if (soundData.length > 1000) soundData = soundData.slice(-1000);
 
   if (level > 0) {
-    console.log(`📩 Sending email for sound level: ${level} dB`);
+    console.log(`📢 Sound detected: ${level} dB - Sending email...`);
     await sendEmailAlert(level);
   } else {
-    console.log("🔇 Sound level is 0 dB – skipping email.");
+    console.log("🔇 Level is 0 dB – skipping email.");
   }
 
-  res.status(200).json({ success: true, id: newData.id });
+  res.status(200).json({ success: true, id: data.id });
 });
 
-// 📊 Data fetch endpoint
+// API to fetch recent data
 app.get("/api/sound-data", (req, res) => {
   res.status(200).json(soundData.slice(-50));
 });
 
-// 🧪 Test alert endpoint
-app.get("/api/test-alert", async (req, res) => {
-  const testLevel = 88.8; // Use a dummy test dB level
-  await sendEmailAlert(testLevel);
-  res.status(200).json({ message: `Test email sent with level ${testLevel} dB` });
-});
-
-// 🚀 Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-module.exports = app;
-
