@@ -29,7 +29,7 @@ const sendEmailAlert = async (level) => {
       "https://api.brevo.com/v3/smtp/email",
       {
         sender: {
-          name: "Sound Detector",
+          name: "Sound_Detector",
           email: "sounddetector7@gmail.com", // Replace with verified sender
         },
         to: [{ email: ALERT_EMAIL }],
