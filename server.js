@@ -7,14 +7,12 @@ require("dotenv").config();
 const app = express();
 
 // ─── CORS SETUP ───────────────────────────────────────────────────────────────
-// Only allow your frontend’s origin
 app.use(cors({
   origin: "https://safe-ride-mu.vercel.app",
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"],
 }));
 
-// Handle preflight OPTIONS explicitly
 app.options("/api/sound-data", (req, res) => {
   res.sendStatus(204);
 });
@@ -51,19 +49,16 @@ app.post("/api/sound-data", async (req, res) => {
   soundData.push(newData);
   if (soundData.length > 1000) soundData = soundData.slice(-1000);
 
-  if (level > 50) {
-    try {
-      await client.messages.create({
-        from: FROM,
-        to: TO,
-        body: `🚨 High Sound Level Detected: ${level} dB`,
-      });
-      console.log("✅ WhatsApp alert sent for level", level);
-    } catch (err) {
-      console.error("❌ Twilio error:", err.message);
-    }
-  } else {
-    console.log("🔈 Level is below threshold:", level);
+  try {
+    const alertMsg = `🚨 Alert from Helmet (${deviceId}): Sound Level ${level} dB`;
+    await client.messages.create({
+      from: FROM,
+      to: TO,
+      body: alertMsg,
+    });
+    console.log("✅ WhatsApp alert sent:", alertMsg);
+  } catch (err) {
+    console.error("❌ Twilio error:", err.message);
   }
 
   return res.status(200).json({ success: true, id: newData.id });
