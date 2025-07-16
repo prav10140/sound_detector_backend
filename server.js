@@ -7,14 +7,14 @@ require("dotenv").config();
 const app = express();
 
 // ─── CORS SETUP ───────────────────────────────────────────────────────────────
-// Only allow your frontend’s origin. You can add more domains if needed.
+// Only allow your frontend’s origin
 app.use(cors({
   origin: "https://safe-ride-mu.vercel.app",
   methods: ["GET", "POST", "OPTIONS"],
-  allowedHeaders: ["Content-Type"]
+  allowedHeaders: ["Content-Type"],
 }));
 
-// Handle preflight OPTIONS explicitly (in case cors() doesn't catch it)
+// Handle preflight OPTIONS explicitly
 app.options("/api/sound-data", (req, res) => {
   res.sendStatus(204);
 });
@@ -30,12 +30,13 @@ const client = twilio(
 const FROM = `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`;
 const TO   = `whatsapp:${process.env.RECEIVER_WHATSAPP_NUMBER}`;
 
-// ─── IN‑MEMORY STORE ───────────────────────────────────────────────────────────
+// ─── IN‑MEMORY DATA STORE ─────────────────────────────────────────────────────
 let soundData = [];
 
 // ─── POST /api/sound-data ─────────────────────────────────────────────────────
 app.post("/api/sound-data", async (req, res) => {
   const { level, deviceId } = req.body;
+
   if (typeof level !== "number") {
     return res.status(400).json({ error: "Invalid sound level data" });
   }
@@ -46,6 +47,7 @@ app.post("/api/sound-data", async (req, res) => {
     deviceId: deviceId || "unknown",
     timestamp: Date.now(),
   };
+
   soundData.push(newData);
   if (soundData.length > 1000) soundData = soundData.slice(-1000);
 
@@ -72,4 +74,6 @@ app.get("/api/sound-data", (req, res) => {
   return res.status(200).json(soundData.slice(-50));
 });
 
+// ─── EXPORT FOR VERCEL ────────────────────────────────────────────────────────
 module.exports = app;
+
