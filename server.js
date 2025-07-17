@@ -35,7 +35,7 @@ let soundData = [];
 app.post("/api/sound-data", async (req, res) => {
   const { level, deviceId } = req.body;
 
-  if (typeof level !== "number") {
+  if (typeof level !== "string") {
     return res.status(400).json({ error: "Invalid sound level data" });
   }
 
@@ -49,8 +49,16 @@ app.post("/api/sound-data", async (req, res) => {
   soundData.push(newData);
   if (soundData.length > 1000) soundData = soundData.slice(-1000);
 
+  const levelMap = {
+    SOS: "SOS ALERT ! Warning",
+    Accident: "Acident ALERT ! Warning",
+    Safe: "Now I am Safe",
+  };
+
+  const alertText = levelMap[level] || `Unknown Level: ${level}`;
+  const alertMsg = `🚨 Alert from Helmet (${deviceId}): ${alertText}`;
+
   try {
-    const alertMsg = `🚨 Alert from Helmet (${deviceId}): Sound Level ${level} dB`;
     await client.messages.create({
       from: FROM,
       to: TO,
@@ -63,6 +71,7 @@ app.post("/api/sound-data", async (req, res) => {
 
   return res.status(200).json({ success: true, id: newData.id });
 });
+
 
 // ─── GET /api/sound-data ──────────────────────────────────────────────────────
 app.get("/api/sound-data", (req, res) => {
